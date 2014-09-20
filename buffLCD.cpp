@@ -527,6 +527,6 @@ void buffLCD::hour(uint8_t line, const float rad) {
 
   //                01234567890123
   //                23:59:59.00000
-  sprintf(_string, "%02d:%02d:%02.5f", h, m, s);
+  sprintf(_string, "%02d:%02d:%08.5f", h, m, s);
   text(0, line, String(_string));
 };
