@@ -278,13 +278,13 @@ void buffLCD::box(uint8_t x, uint8_t y, uint8_t lenx, uint8_t leny) {
     ++y;
     --leny;
     if((y%8 == 0) || (leny == 0)) {
+      setX(x);
+      setY(row);
       for(uint8_t xt = x; xt < x+lenx; ++xt) {
         _screen[xt%LCD_MAX_X][row] ^= line;
-        setX(xt);
         write(_dataLCD, _screen[xt%LCD_MAX_X][row]);
       }
       ++row;
-      setY(row);
       line = 0;
     }
   }
@@ -463,13 +463,9 @@ uint8_t _numDigits(long x) {
   return (x < 0)?(k+1):k;
 };
 
-void buffLCD::printf(uint8_t line, float val) {
+void buffLCD::printf(uint8_t line, float val, uint8_t width, uint8_t prec) {
   char _string[14];
-  sprintf(_string, "%14.*f", 13-_numDigits(val), val);
-//  char _config[] = "       ";
-//  uint8_t dot = _numDigits((long)val);
-//  sprintf(_config, "%%%1d.%df", dot, 12 - dot);
-//  sprintf(_string, _config, val);
+  sprintf(_string, "%*.*f", width, 1+prec-_numDigits(val), val);
   text(0, line, String(_string));
 };
 

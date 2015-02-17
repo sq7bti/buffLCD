@@ -37,7 +37,7 @@ public:
   void text(uint8_t x, uint8_t y, String s);
   void scroll(uint16_t x, uint8_t y, String s);
   void progress(uint16_t x, uint8_t y);
-  void printf(uint8_t x, float f);
+  void printf(uint8_t x, float f, uint8_t w = 14, uint8_t p = 12);
   void dms(uint8_t x, float f);
   void hour(uint8_t x, float f);
 
