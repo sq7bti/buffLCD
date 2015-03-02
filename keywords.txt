@@ -1,0 +1,47 @@
+#######################################
+# Syntax Coloring Map For buffLCD
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+buffLCD	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+WhoAmI	KEYWORD2
+
+clear	KEYWORD2
+setFont	KEYWORD2
+setContrast	KEYWORD2
+setDisplayMode	KEYWORD2
+
+pixel	KEYWORD2
+setPixel	KEYWORD2
+clearPixel	KEYWORD2
+hline	KEYWORD2
+vline	KEYWORD2
+rect	KEYWORD2
+
+text	KEYWORD2
+scroll	KEYWORD2
+progress	KEYWORD2
+printf	KEYWORD2
+dms	KEYWORD2
+hour	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+ 
+NON_INVERTED	LITERAL1
+INVERTED	LITERAL1
+BLACK	LITERAL1
+WHITE	LITERAL1
+LCD_MAX_X	LITERAL1
+LCD_MAX_Y	LITERAL1
+
