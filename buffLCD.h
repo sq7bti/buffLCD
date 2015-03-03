@@ -5,6 +5,7 @@
 
 #include "Terminal6.h"
 #include "Terminal12.h"
+#include "Greek11x16.h"
 
 #define NON_INVERTED  false
 #define INVERTED      true

@@ -89,24 +89,32 @@ void buffLCD::text(uint8_t x, uint8_t y, String s) {
       }
       _screen[6*(x+j) + 5][y] = _inverse;
     }
-  } else if (_font==1) {
-    for (j=0; j<min(s.length(),LCD_MAX_X/12); j++) {
-      for (i=0; i<11; i++) {
-        _screen[6*x+12*j+i][y]   = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i];
-        _screen[6*x+12*j+i][y+1] = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i+1];
+  } else {
+    if( (_font==1) || (_font==2)) {
+      for (j=0; j<min(s.length(),LCD_MAX_X/12); j++) {
+        for (i=0; i<11; i++) {
+          if(_font==1) {
+            _screen[6*x+12*j+i][y]   = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i];
+            _screen[6*x+12*j+i][y+1] = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i+1];
+          } else {
+            _screen[6*x+12*j+i][y]   = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i+1];
+            _screen[6*x+12*j+i][y+1] = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i+2];
+          }
+        }
+        _screen[6*x + 11][y]   = _inverse;
+        _screen[6*x + 11][y+1] = _inverse;
       }
-      _screen[6*x + 11][y]   = _inverse;
-      _screen[6*x + 11][y+1] = _inverse;
     }
   }
 
   setXY(6*x, y);
+
   if (_font==0) {
     for (j=0; j<(6*s.length()); j++) {
       write(_dataLCD, _screen[(6*x) + j][y]);
     }
-  } else
-    if (_font==1) {
+  } else {
+    if((_font==1) || (_font==2)) {
       for (j=0; j<(12*s.length()); j++) {
         write(_dataLCD, _screen[(6*x) + j][y]);
       }
@@ -115,6 +123,7 @@ void buffLCD::text(uint8_t x, uint8_t y, String s) {
         write(_dataLCD, _screen[(6*x) + j][y+1]);
       }
     }
+  }
 }
 
 void buffLCD::scroll(uint16_t x, uint8_t y, String s) {
