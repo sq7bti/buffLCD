@@ -97,8 +97,8 @@ void buffLCD::text(uint8_t x, uint8_t y, String s) {
             _screen[6*x+12*j+i][y]   = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i];
             _screen[6*x+12*j+i][y+1] = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i+1];
           } else {
-            _screen[6*x+12*j+i][y]   = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i+1];
-            _screen[6*x+12*j+i][y+1] = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i+2];
+            _screen[6*x+12*j+i][y]   = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i];
+            _screen[6*x+12*j+i][y+1] = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i+1];
           }
         }
         _screen[6*x + 11][y]   = _inverse;
