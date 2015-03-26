@@ -473,9 +473,11 @@ uint8_t _numDigits(long x) {
 };
 
 void buffLCD::printf(uint8_t line, float val, uint8_t width, uint8_t prec) {
-  char _string[14];
-  sprintf(_string, "%*.*f", width, 1+prec-_numDigits(val), val);
-  text(0, line, String(_string));
+  char _string[16];
+  val = isnan(val)?0.0:val;
+//  sprintf(_string, "%*.*f", width, 1+prec-_numDigits(val), val);
+  sprintf(_string, "%f", val);
+  text(0, line, String(_string).substring(0,14));
 };
 
 void buffLCD::dms(uint8_t line, const float rad) {
@@ -484,8 +486,8 @@ void buffLCD::dms(uint8_t line, const float rad) {
   float s;
   char _string[32];
 
-  s = rad * RAD_TO_DEG;
-  d = (signed int)s;
+  s = RAD_TO_DEG * (isnan(rad)?0.0:rad);
+  d = (signed int)floor(s);
   s -= d;
   s = fabs(s);
   s *= 60.0;
@@ -514,7 +516,7 @@ void buffLCD::dms(uint8_t line, const float rad) {
 void buffLCD::hour(uint8_t line, const float rad) {
   unsigned int h;
   unsigned int m;
-  float s = rad;
+  float s = isnan(rad)?0.0:rad;
   char _string[32];
 
   while(s > TWO_PI)
