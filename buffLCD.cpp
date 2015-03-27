@@ -473,11 +473,11 @@ uint8_t _numDigits(long x) {
 };
 
 void buffLCD::printf(uint8_t line, float val, uint8_t width, uint8_t prec) {
-  char _string[16];
+  char _string[32];
   val = isnan(val)?0.0:val;
 //  sprintf(_string, "%*.*f", width, 1+prec-_numDigits(val), val);
-  sprintf(_string, "%f", val);
-  text(0, line, String(_string).substring(0,14));
+  sprintf(_string, "%s%s%*.*f0000", (val<100.0)?" ":"", (val<10.0)?" ":"", width-3, prec, val);
+  text(0, line, String(_string).substring(0,width));
 };
 
 void buffLCD::dms(uint8_t line, const float rad) {
