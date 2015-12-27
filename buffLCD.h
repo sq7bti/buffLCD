@@ -27,6 +27,7 @@ public:
 
   void pixel(uint8_t x, uint8_t y);
   void setPixel(uint8_t x, uint8_t y);
+  boolean getPixel(uint8_t x, uint8_t y);
   void clearPixel(uint8_t x, uint8_t y);
   void hline(uint8_t x, uint8_t y, uint8_t len);
   void vline(uint8_t x, uint8_t y, uint8_t len);
@@ -41,6 +42,9 @@ public:
   void printf(uint8_t x, float f, uint8_t w = 14, uint8_t p = 10);
   void dms(uint8_t x, float f);
   void hour(uint8_t x, float f);
+
+  const uint8_t* get_screen_buff() { return (const uint8_t*)&_screen; };
+  void dump_screen_buff(HardwareSerial* debug_port, boolean ascii = true, char white = ' ', char black = '#');
 
 private:
   void setXY(uint8_t x, uint8_t y);
