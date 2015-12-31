@@ -197,6 +197,8 @@ void buffLCD::scroll(uint16_t x, uint8_t y, String s) {
 
 void buffLCD::progress(uint16_t x, uint8_t y) {
   uint16_t i = 0;
+  uint16_t j = 0;
+  uint8_t k;
 
 //  rect(0, y*6, LCD_MAX_X, 8);
   setXY(0, y);
@@ -240,15 +242,6 @@ void buffLCD::setPixel(uint8_t x, uint8_t y) {
   _screen[x%LCD_MAX_X][row] |= line;
   setXY(x, row);
   write(_dataLCD, _screen[x%LCD_MAX_X][row]);
-};
-
-boolean buffLCD::getPixel(uint8_t x, uint8_t y) {
-  uint8_t row = y / 8;
-  if(row > (LCD_MAX_Y/8))
-    return false;
-  uint8_t line = 1 << (y%8);
-
-  return (_screen[x%LCD_MAX_X][row] & line);
 };
 
 void buffLCD::hline(uint8_t x, uint8_t y, uint8_t len) {
@@ -324,6 +317,7 @@ void buffLCD::rect(uint8_t x, uint8_t y, uint8_t lenx, uint8_t leny) {
     lenx = LCD_MAX_X - x - 1;
   if(y+leny>=LCD_MAX_Y)
     leny = LCD_MAX_Y - y - 1;
+  uint8_t lenyt = leny;
 
   while(leny != 0) {
     line |= 1 << (y%8);
@@ -466,7 +460,8 @@ static const unsigned long _dv[] = {             //
     1000000,                                 // 6
    10000000,                                 // 7
   100000000,                                 // 8
- 1000000000                                  // 9
+ 1000000000,                                 // 9
+10000000000                                  // 10
 };
 
 uint8_t _numDigits(long x) {
@@ -541,22 +536,4 @@ void buffLCD::hour(uint8_t line, const float rad) {
   //                23:59:59.00000
   sprintf(_string, "%02d:%02d:%08.5f", h, m, s);
   text(0, line, String(_string));
-};
-
-//void buffLCD::dump_screen_buff(HardwareSerial* debug_port, boolean ascii = true, char white = ' '; char black = '#')
-void buffLCD::dump_screen_buff(HardwareSerial* debug_port, boolean ascii, char white, char black) {
-  if(ascii) {
-    for(uint8_t y = 0; y < LCD_MAX_Y; ++y) {
-      for(uint8_t x = 0; x < LCD_MAX_X; ++x)
-        debug_port->write(getPixel(x,y)?black:white);
-      debug_port->println();
-    }
-  } else {
-    // binary
-    for(uint8_t y = 0; y < LCD_MAX_Y / 8; ++y) {
-      for(uint8_t x = 0; x < LCD_MAX_X; ++x) {
-        debug_port->write(_screen[x][y]);
-      }
-    }
-  }
 };
