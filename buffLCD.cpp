@@ -490,10 +490,16 @@ void buffLCD::dms(uint8_t line, const float rad) {
   unsigned int m;
   float s;
   char _string[32];
+  bool neg = false;
 
   s = RAD_TO_DEG * (isnan(rad)?0.0:rad);
+  neg = s < 0.0;
+  if(neg)
+    s *= -1;
   d = (signed int)floor(s);
   s -= d;
+  if(neg)
+    d *= -1;
   s = fabs(s);
   s *= 60.0;
   m = (unsigned int)s;
@@ -523,6 +529,7 @@ void buffLCD::hour(uint8_t line, const float rad) {
   unsigned int m;
   float s = isnan(rad)?0.0:rad;
   char _string[32];
+  bool neg = false;
 
   while(s > TWO_PI)
     s -= TWO_PI;
