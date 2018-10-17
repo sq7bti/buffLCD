@@ -78,27 +78,27 @@ void buffLCD::setDisplayMode(uint8_t mode) {
   _inverse = (mode == INVERTED)?BLACK:WHITE;
 }
 
-void buffLCD::text(uint8_t x, uint8_t y, String s) {
+void buffLCD::text(uint8_t x, uint8_t y, const char* s) {
   uint8_t i;
   uint8_t j;
 
   if (_font==0) {
-    for (j=0; j<s.length(); j++) {
+    for (j=0; j<strlen(s); j++) {
       for (i=0; i<5; i++) {
-        _screen[6*(x+j) + i][y] = _inverse ^ Terminal6x8[s.charAt(j)-' '][i];
+        _screen[6*(x+j) + i][y] = _inverse ^ Terminal6x8[s[j]-' '][i];
       }
       _screen[6*(x+j) + 5][y] = _inverse;
     }
   } else {
     if( (_font==1) || (_font==2)) {
-      for (j=0; j<min(s.length(),LCD_MAX_X/12); j++) {
+      for (j=0; j<min(strlen(s),LCD_MAX_X/12); j++) {
         for (i=0; i<11; i++) {
           if(_font==1) {
-            _screen[6*x+12*j+i][y]   = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i];
-            _screen[6*x+12*j+i][y+1] = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*i+1];
+            _screen[6*x+12*j+i][y]   = _inverse ^ Terminal11x16[s[j]-' '][2*i];
+            _screen[6*x+12*j+i][y+1] = _inverse ^ Terminal11x16[s[j]-' '][2*i+1];
           } else {
-            _screen[6*x+12*j+i][y]   = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i];
-            _screen[6*x+12*j+i][y+1] = _inverse ^ Greek11x16[s.charAt(j)-'a'][2*i+1];
+            _screen[6*x+12*j+i][y]   = _inverse ^ Greek11x16[s[j]-'a'][2*i];
+            _screen[6*x+12*j+i][y+1] = _inverse ^ Greek11x16[s[j]-'a'][2*i+1];
           }
         }
         _screen[6*x + 11][y]   = _inverse;
@@ -110,23 +110,62 @@ void buffLCD::text(uint8_t x, uint8_t y, String s) {
   setXY(6*x, y);
 
   if (_font==0) {
-    for (j=0; j<(6*s.length()); j++) {
+    for (j=0; j<(6*strlen(s)); j++) {
       write(_dataLCD, _screen[(6*x) + j][y]);
     }
   } else {
     if((_font==1) || (_font==2)) {
-      for (j=0; j<(12*s.length()); j++) {
+      for (j=0; j<(12*strlen(s)); j++) {
         write(_dataLCD, _screen[(6*x) + j][y]);
       }
       setXY(6*x, y+1);
-      for (j=0; j<(12*s.length()); j++) {
+      for (j=0; j<(12*strlen(s)); j++) {
         write(_dataLCD, _screen[(6*x) + j][y+1]);
       }
     }
   }
 }
 
-void buffLCD::scroll(uint16_t x, uint8_t y, String s) {
+void buffLCD::setChar(uint8_t x, uint8_t y, const char s) {
+  uint8_t i;
+
+  if (_font==0) {
+    for (i=0; i<5; i++)
+      _screen[6*x + i][y] = _inverse ^ Terminal6x8[s-' '][i];
+    _screen[6*x + 5][y] = _inverse;
+  } else {
+    if( (_font==1) || (_font==2)) {
+      for (i=0; i<11; i++) {
+        if(_font==1) {
+          _screen[6*x+i][y]   = _inverse ^ Terminal11x16[s-' '][2*i];
+          _screen[6*x+i][y+1] = _inverse ^ Terminal11x16[s-' '][2*i+1];
+        } else {
+          _screen[6*x+i][y]   = _inverse ^ Greek11x16[s-'a'][2*i];
+          _screen[6*x+i][y+1] = _inverse ^ Greek11x16[s-'a'][2*i+1];
+        }
+      }
+      _screen[6*x + 11][y]   = _inverse;
+      _screen[6*x + 11][y+1] = _inverse;
+    }
+  }
+
+  setXY(6*x, y);
+
+  if (_font==0) {
+    for (i=0; i<6; i++)
+      write(_dataLCD, _screen[6*x+i][y]);
+  } else {
+    if((_font==1) || (_font==2)) {
+      for (i=0; i<12; i++)
+        write(_dataLCD, _screen[6*x + i][y]);
+      setXY(6*x, y+1);
+      for (i=0; i<12; i++)
+        write(_dataLCD, _screen[6*x + i][y+1]);
+    }
+  }
+}
+
+void buffLCD::scroll(uint16_t x, uint8_t y, const char* s) {
   uint16_t i = 0;
   uint16_t j = 0;
   uint8_t k;
@@ -138,13 +177,13 @@ void buffLCD::scroll(uint16_t x, uint8_t y, String s) {
       for(i = 0; i < (LCD_MAX_X - x); ++i)
         _screen[i][y] = _inverse;
 
-    while((i < LCD_MAX_X) && (j<s.length())) {
+    while((i < LCD_MAX_X) && (j<strlen(s))) {
       j = (i - (LCD_MAX_X - x)) / 6;
-      if(j==s.length())
+      if(j==strlen(s))
         break;
       k = (i - (LCD_MAX_X - x)) % 6;
       if(k%6 != 5)
-        _screen[i][y] = _inverse ^ Terminal6x8[s.charAt(j)-' '][k];
+        _screen[i][y] = _inverse ^ Terminal6x8[s[j]-' '][k];
       else
         _screen[i][y] = _inverse;
       ++i;
@@ -162,14 +201,14 @@ void buffLCD::scroll(uint16_t x, uint8_t y, String s) {
         _screen[i][y+1] = _inverse;
       }
 
-    while((i < LCD_MAX_X) && (j<s.length())) {
+    while((i < LCD_MAX_X) && (j<strlen(s))) {
       j = (i - (LCD_MAX_X - x)) / 12;
-      if(j==s.length())
+      if(j==strlen(s))
         break;
       k = (i - (LCD_MAX_X - x)) % 12;
       if(k%12 != 11) {
-        _screen[i][y] = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*k];
-        _screen[i][y+1] = _inverse ^ Terminal11x16[s.charAt(j)-' '][2*k+1];
+        _screen[i][y] = _inverse ^ Terminal11x16[s[j]-' '][2*k];
+        _screen[i][y+1] = _inverse ^ Terminal11x16[s[j]-' '][2*k+1];
       } else {
         _screen[i][y] = _inverse;
         _screen[i][y+1] = _inverse;
@@ -195,13 +234,15 @@ void buffLCD::scroll(uint16_t x, uint8_t y, String s) {
     }
 }
 
-void buffLCD::progress(uint16_t x, uint8_t y) {
+void buffLCD::progress(uint16_t x, uint8_t y, bool clear) {
   uint16_t i = 0;
 
 //  rect(0, y*6, LCD_MAX_X, 8);
   setXY(0, y);
   while(i<LCD_MAX_X-1) {
-    _screen[i][y] = _inverse ^ (i<x)?0xFF:0x81;
+    if(clear)
+      _screen[i][y] = 0x00;
+    _screen[i][y] ^= _inverse ^ (i<x)?0xFF:0x81;
     write(_dataLCD, _screen[i][y]);
     ++i;
   }
@@ -257,7 +298,7 @@ void buffLCD::hline(uint8_t x, uint8_t y, uint8_t len) {
 
   setXY(x, row);
   for(uint8_t k = 0; k < len; ++k) {
-    _screen[(x+k)%LCD_MAX_X][row] ^= line;
+    _screen[(x+k)%LCD_MAX_X][row] |= line;
     write(_dataLCD, _screen[(x+k)%LCD_MAX_X][row]);
   }
 };
@@ -271,7 +312,7 @@ void buffLCD::vline(uint8_t x, uint8_t y, uint8_t len) {
     ++y;
     --len;
     if((y%8 == 0) || (len == 0)) {
-      _screen[x%LCD_MAX_X][row] ^= line;
+      _screen[x%LCD_MAX_X][row] |= line;
       setXY(x, row);
       write(_dataLCD, _screen[x%LCD_MAX_X][row]);
       ++row;
@@ -417,9 +458,9 @@ void buffLCD::line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
   }
   for(uint8_t x=x0; x < x1; ++x) {
     if(steep)
-      pixel(y,x);
+      setPixel(y,x);
     else
-      pixel(x,y);
+      setPixel(x,y);
     error = error - deltay;
     if(error < 0) {
       y = y + ystep;
@@ -435,14 +476,14 @@ void buffLCD::circle(uint8_t x0, uint8_t y0, uint8_t radius)
   int radiusError = 1-x;
 
   while(x >= y) {
-    pixel(x + x0, y + y0);
-    pixel(y + x0, x + y0);
-    pixel(-x + x0, y + y0);
-    pixel(-y + x0, x + y0);
-    pixel(-x + x0, -y + y0);
-    pixel(-y + x0, -x + y0);
-    pixel(x + x0, -y + y0);
-    pixel(y + x0, -x + y0);
+    setPixel(x + x0, y + y0);
+    setPixel(y + x0, x + y0);
+    setPixel(-x + x0, y + y0);
+    setPixel(-y + x0, x + y0);
+    setPixel(-x + x0, -y + y0);
+    setPixel(-y + x0, -x + y0);
+    setPixel(x + x0, -y + y0);
+    setPixel(y + x0, -x + y0);
     y++;
     if (radiusError<0)
     {
@@ -482,10 +523,11 @@ void buffLCD::printf(uint8_t line, float val, uint8_t width, uint8_t prec) {
   val = isnan(val)?0.0:val;
 //  sprintf(_string, "%*.*f", width, 1+prec-_numDigits(val), val);
   sprintf(_string, "%s%s%*.*f0000", (val<100.0)?" ":"", (val<10.0)?" ":"", width-3, prec, val);
-  text(0, line, String(_string).substring(0,width));
+  _string[width] = 0;
+  text(0, line, _string);
 };
 
-void buffLCD::dms(uint8_t line, const float rad) {
+void buffLCD::dms(uint8_t line, const float rad, bool sign) {
   signed int d;
   unsigned int m;
   float s;
@@ -510,18 +552,23 @@ void buffLCD::dms(uint8_t line, const float rad) {
   // either it is a -90 ... +90 degrees declination or altitude
   //     or it is a 0 ... 360 degrees azimuth
   //                01234567890123
-  //                -89*59'59.0000
-  //                 89*59'59.0000
-  //                359*59'59.0000
+  //                -89*59'59.999"
+  //                 89*59'59.999"
+  //                359*59'59.999"
 
-  if(rad < 0.0) //
-    sprintf(_string, "-%02d%c%02d'%07.4f", abs(d), 0x7F, m, s);
-  else if(d < 100)
-      sprintf(_string, " %02d%c%02d'%07.4f", d, 0x7F, m, s);
-    else
-      sprintf(_string, "%03d%c%02d'%07.4f", d, 0x7F, m, s);
+  if((rad < 0.0) || sign) //
+    sprintf(_string, "%c%02d%c%02d'%06.3f\"", neg?'-':'+', abs(d), 0x7F, m, s);
+//  else if(d < 100)
+//      sprintf(_string, "%02d%c%02d'%08.5f", d, 0x7F, m, s);
+  else
+    sprintf(_string, "%03d%c%02d'%06.3f\"", d, 0x7F, m, s);
 
-  text(0, line, String(_string));
+//  if(sign && (d < 100))
+//    sprintf(_string, "%+3d%c%02d'%07.4f", d, 0x7F, m, s);
+//  else
+//    sprintf(_string, "%3d%c%02d'%07.4f", abs(d), 0x7F, m, s);
+
+  text(0, line, _string);
 };
 
 void buffLCD::hour(uint8_t line, const float rad) {
@@ -529,7 +576,6 @@ void buffLCD::hour(uint8_t line, const float rad) {
   unsigned int m;
   float s = isnan(rad)?0.0:rad;
   char _string[32];
-  bool neg = false;
 
   while(s > TWO_PI)
     s -= TWO_PI;
@@ -546,8 +592,11 @@ void buffLCD::hour(uint8_t line, const float rad) {
 
   //                01234567890123
   //                23:59:59.00000
-  sprintf(_string, "%02d:%02d:%08.5f", h, m, s);
-  text(0, line, String(_string));
+//  sprintf(_string, "%02d:%02d:%08.5f", h, m, s);
+  //                01234567890123
+  //                 23:59:59.0000
+  sprintf(_string, " %02d:%02d:%07.4f", h, m, s);
+  text(0, line, _string);
 };
 
 //void buffLCD::dump_screen_buff(HardwareSerial* debug_port, boolean ascii = true, char white = ' '; char black = '#')

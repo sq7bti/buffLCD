@@ -36,11 +36,12 @@ public:
   void line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
   void circle(uint8_t x0, uint8_t y0, uint8_t radius);
 
-  void text(uint8_t x, uint8_t y, String s);
-  void scroll(uint16_t x, uint8_t y, String s);
-  void progress(uint16_t x, uint8_t y);
+  void text(uint8_t x, uint8_t y, const char* s);
+  void setChar(uint8_t x, uint8_t y, const char s);
+  void scroll(uint16_t x, uint8_t y, const char* s);
+  void progress(uint16_t x, uint8_t y, bool clear = true);
   void printf(uint8_t x, float f, uint8_t w = 14, uint8_t p = 10);
-  void dms(uint8_t x, float f);
+  void dms(uint8_t x, float f, bool sign = true);
   void hour(uint8_t x, float f);
 
   const uint8_t* get_screen_buff() { return (const uint8_t*)&_screen; };
