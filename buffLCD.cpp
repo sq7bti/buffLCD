@@ -11,16 +11,16 @@ void buffLCD::write(uint8_t dataCommand, uint8_t c) {
 }
 
 void buffLCD::setXY(uint8_t x, uint8_t y) {
-  write(_commandLCD, 0x40 | y);
-  write(_commandLCD, 0x80 | x);
+  write(_commandLCD, PCD8544_SETYADDR | y);
+  write(_commandLCD, PCD8544_SETXADDR | x);
 }
 
 void buffLCD::setX(uint8_t x) {
-  write(_commandLCD, 0x80 | x);
+  write(_commandLCD, PCD8544_SETXADDR | x);
 }
 
 void buffLCD::setY(uint8_t y) {
-  write(_commandLCD, 0x40 | y);
+  write(_commandLCD, PCD8544_SETYADDR | y);
 }
 
 void buffLCD::begin(uint8_t pinDataCommand) {
@@ -36,12 +36,12 @@ void buffLCD::begin(uint8_t pinDataCommand) {
   delay(100); // as per 8.1 Initialisation
   digitalWrite(_pinDataCommand, HIGH);
 
-  write(_commandLCD, 0x21); // chip is active, horizontal addressing, use extended instruction set
-  write(_commandLCD, 0x80 + 0x48); // write VOP to register: 0xC8 for 3V — try other values
-  write(_commandLCD, 0x12); // set Bias System 1:48
-  write(_commandLCD, 0x20); // chip is active, horizontal addressing, use basic instruction set
+  write(_commandLCD, PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION); // chip is active, horizontal addressing, use extended instruction set
+  write(_commandLCD, PCD8544_SETVOP + 0x48); // write VOP to register: 0xC8 for 3V — try other values
+  write(_commandLCD, PCD8544_SETBIAS + 0x02); // set Bias System 1:48
+  write(_commandLCD, PCD8544_FUNCTIONSET); // chip is active, horizontal addressing, use basic instruction set
   write(_commandLCD, 0x09); // temperature control
-  write(_commandLCD, 0x0c); // normal mode
+  write(_commandLCD, 0x0C); // normal mode
   delay(10);
 
   clear();
@@ -55,9 +55,9 @@ String buffLCD::WhoAmI() {
 void buffLCD::setContrast(uint8_t val) {
   if(val > 0x7F)
     val = 0x7F;
-  write(_commandLCD, 0x21); // chip is active, horizontal addressing, use extended instruction set
-  write(_commandLCD, 0x80 + val); // write VOP to register: 0xC8 for 3V — try other values
-  write(_commandLCD, 0x20); // normal mode
+  write(_commandLCD, PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION); // chip is active, horizontal addressing, use extended instruction set
+  write(_commandLCD, PCD8544_SETVOP + val); // write VOP to register: 0xC8 for 3V — try other values
+  write(_commandLCD, PCD8544_FUNCTIONSET); // normal mode
 }
 
 void buffLCD::clear() {
@@ -497,18 +497,18 @@ void buffLCD::circle(uint8_t x0, uint8_t y0, uint8_t radius)
   }
 }
 
-static const unsigned long _dv[] = {             //
-          0,                                 // 0
-         10,                                 // 1
-        100,                                 // 2
-       1000,                                 // 3
-      10000,                                 // 4
-     100000,                                 // 5
-    1000000,                                 // 6
-   10000000,                                 // 7
-  100000000,                                 // 8
- 1000000000                                  // 9
-};
+/*static const unsigned long _dv[] = {            //
+             0,                                 // 0
+            10,                                 // 1
+           100,                                 // 2
+          1000,                                 // 3
+         10000,                                 // 4
+        100000,                                 // 5
+       1000000,                                 // 6
+      10000000,                                 // 7
+     100000000,                                 // 8
+    1000000000                                  // 9
+};*/
 
 uint8_t _numDigits(long x) {
   unsigned long absx = abs(x);
@@ -518,26 +518,44 @@ uint8_t _numDigits(long x) {
   return (x < 0)?(k+1):k;
 };
 
-void buffLCD::printf(uint8_t line, float val, uint8_t width, uint8_t prec) {
-  char _string[32];
-  val = isnan(val)?0.0:val;
+void buffLCD::printf(uint8_t line, double val, uint8_t width, uint8_t prec) {
+  char _string[width+1];
+  char* pp = _string;
+  bool neg = val < 0.0;
+//  val = isnan(val)?0.0:val;
 //  sprintf(_string, "%*.*f", width, 1+prec-_numDigits(val), val);
-  sprintf(_string, "%s%s%*.*f0000", (val<100.0)?" ":"", (val<10.0)?" ":"", width-3, prec, val);
+//  sprintf(_string, "%s%s%*.*f0000", (val<100.0)?" ":"", (val<10.0)?" ":"", width-3, prec, val);
+  if(isnan(val))
+    sprintf(_string, "NaN");
+  else {
+    pp += sprintf(_string, "%*i", width-prec-(prec>0), int(val));
+    if(neg)
+      val *= -1.0;
+    if(prec) {
+      pp += sprintf(pp, ".");
+      val -= int(val);
+      while(prec--) {
+        val *= 10.0;
+        pp += sprintf(pp, "%i", int(val));
+        val -= int(val);
+      }
+    }
+  }
   _string[width] = 0;
   text(0, line, _string);
 };
 
-void buffLCD::dms(uint8_t line, const float rad, bool sign) {
+void buffLCD::dms(uint8_t line, const double rad, bool sign) {
   signed int d;
-  unsigned int m;
-  float s;
+  unsigned int m, fracs;
+  double s;
   char _string[32];
   bool neg = false;
 
   s = RAD_TO_DEG * (isnan(rad)?0.0:rad);
   neg = s < 0.0;
   if(neg)
-    s *= -1;
+    s *= -1.0;
   d = (signed int)floor(s);
   s -= d;
   if(neg)
@@ -548,6 +566,8 @@ void buffLCD::dms(uint8_t line, const float rad, bool sign) {
   s -= m;
   s *= 60.0;
 
+  fracs = 1000.0 * (s - int(s));
+
   // options:
   // either it is a -90 ... +90 degrees declination or altitude
   //     or it is a 0 ... 360 degrees azimuth
@@ -557,11 +577,11 @@ void buffLCD::dms(uint8_t line, const float rad, bool sign) {
   //                359*59'59.999"
 
   if((rad < 0.0) || sign) //
-    sprintf(_string, "%c%02d%c%02d'%06.3f\"", neg?'-':'+', abs(d), 0x7F, m, s);
+    sprintf(_string, "%c%02d%c%02d'%02i\.%03i\"", neg?'-':'+', abs(d), 0x7F, m, int(s), fracs);
 //  else if(d < 100)
 //      sprintf(_string, "%02d%c%02d'%08.5f", d, 0x7F, m, s);
   else
-    sprintf(_string, "%03d%c%02d'%06.3f\"", d, 0x7F, m, s);
+    sprintf(_string, "%03d%c%02d'%02i\.%03i\"", d, 0x7F, m, int(s), fracs);
 
 //  if(sign && (d < 100))
 //    sprintf(_string, "%+3d%c%02d'%07.4f", d, 0x7F, m, s);
@@ -571,10 +591,10 @@ void buffLCD::dms(uint8_t line, const float rad, bool sign) {
   text(0, line, _string);
 };
 
-void buffLCD::hour(uint8_t line, const float rad) {
+void buffLCD::hour(uint8_t line, const double rad) {
   unsigned int h;
   unsigned int m;
-  float s = isnan(rad)?0.0:rad;
+  double s = isnan(rad)?0.0:rad, fracs;
   char _string[32];
 
   while(s > TWO_PI)
@@ -589,13 +609,14 @@ void buffLCD::hour(uint8_t line, const float rad) {
   m = (unsigned int)s;
   s -= m;
   s *= 60.0;
+  fracs = (10000.0 * s) - (10000.0 * int(s));
 
   //                01234567890123
   //                23:59:59.00000
 //  sprintf(_string, "%02d:%02d:%08.5f", h, m, s);
   //                01234567890123
   //                 23:59:59.0000
-  sprintf(_string, " %02d:%02d:%07.4f", h, m, s);
+  sprintf(_string, " %02d:%02d:%02i\.%04i", h, m, int(s), int(fracs));
   text(0, line, _string);
 };
 
