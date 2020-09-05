@@ -60,12 +60,20 @@ void buffLCD::setContrast(uint8_t val) {
   write(_commandLCD, PCD8544_FUNCTIONSET); // normal mode
 }
 
-void buffLCD::clear() {
+void buffLCD::clear(bool send) {
   setXY(0, 0);
-  for (uint16_t i=0; i<6*84; i++) {
-    write(_dataLCD, _inverse ^ 0x00);
+  for (uint16_t i = 0; i < 6*LCD_MAX_X; i++) {
+    if(send)
+      write(_dataLCD, _inverse ^ 0x00);
     _screen[i % LCD_MAX_X][i / LCD_MAX_X] = _inverse ^ 0x00;
   }
+  setXY(0, 0);
+}
+
+void buffLCD::update() {
+  setXY(0, 0);
+  for (uint16_t i = 0; i < 6*LCD_MAX_X; i++)
+    write(_dataLCD, _screen[i % LCD_MAX_X][i / LCD_MAX_X]);
   setXY(0, 0);
 }
 
@@ -256,31 +264,45 @@ void buffLCD::pixel(uint8_t x, uint8_t y) {
     return;
   uint8_t line = 1 << (y%8);
 
+//  if(_screen[x%LCD_MAX_X][row] & line)
+//    return;
+
   _screen[x%LCD_MAX_X][row] ^= line;
   setXY(x, row);
   write(_dataLCD, _screen[x%LCD_MAX_X][row]);
 };
 
-void buffLCD::clearPixel(uint8_t x, uint8_t y) {
+void buffLCD::clearPixel(uint8_t x, uint8_t y, bool send) {
   uint8_t row = y / 8;
   if(row > (LCD_MAX_Y/8))
     return;
   uint8_t line = 1 << (y%8);
+
+  if((_screen[x%LCD_MAX_X][row] & line) == 0x00)
+    return;
 
   _screen[x%LCD_MAX_X][row] &= ~line;
-  setXY(x, row);
-  write(_dataLCD, _screen[x%LCD_MAX_X][row]);
+  if(send) {
+    setXY(x, row);
+    write(_dataLCD, _screen[x%LCD_MAX_X][row]);
+  }
 };
 
-void buffLCD::setPixel(uint8_t x, uint8_t y) {
+void buffLCD::setPixel(uint8_t x, uint8_t y, bool send) {
   uint8_t row = y / 8;
   if(row > (LCD_MAX_Y/8))
     return;
   uint8_t line = 1 << (y%8);
 
+  if((_screen[x%LCD_MAX_X][row] & line) == line)
+    return;
+
   _screen[x%LCD_MAX_X][row] |= line;
-  setXY(x, row);
-  write(_dataLCD, _screen[x%LCD_MAX_X][row]);
+
+  if(send) {
+    setXY(x, row);
+    write(_dataLCD, _screen[x%LCD_MAX_X][row]);
+  }
 };
 
 boolean buffLCD::getPixel(uint8_t x, uint8_t y) {

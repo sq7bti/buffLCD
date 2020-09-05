@@ -40,15 +40,16 @@ public:
   void begin(uint8_t);
   String WhoAmI();
 
-  void clear();
+  void clear(bool = true);
+  void update();
   void setFont(uint8_t font=0, bool inv=false);
   void setContrast(uint8_t val);
   void setDisplayMode(uint8_t mode);
 
   void pixel(uint8_t x, uint8_t y);
-  void setPixel(uint8_t x, uint8_t y);
+  void setPixel(uint8_t x, uint8_t y, bool = true);
   boolean getPixel(uint8_t x, uint8_t y);
-  void clearPixel(uint8_t x, uint8_t y);
+  void clearPixel(uint8_t x, uint8_t y, bool = true);
   void hline(uint8_t x, uint8_t y, uint8_t len);
   void vline(uint8_t x, uint8_t y, uint8_t len);
   void box(uint8_t x, uint8_t y, uint8_t lenx, uint8_t leny);
